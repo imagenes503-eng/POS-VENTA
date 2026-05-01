@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Supabase</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0fdf4; }
+    input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+    button { width: 100%; padding: 14px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    #resultado { margin-top: 16px; padding: 14px; border-radius: 8px; font-size: 13px; white-space: pre-wrap; word-break: break-all; display: none; }
+    .ok  { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+    .err { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h2>🔌 Test Supabase</h2>
+
+  <label>Project URL</label>
+  <input id="url" type="text" placeholder="https://xxxx.supabase.co" value="https://bmusprznlqkgzkpyfsi.supabase.co">
+
+  <label>API Key (eyJ... o sb_publishable_...)</label>
+  <input id="key" type="text" placeholder="Pega tu clave aquí">
+
+  <button onclick="probar()">Probar conexión</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    async function probar() {
+      const url = document.getElementById('url').value.trim().replace(/\/$/, '');
+      const key = document.getElementById('key').value.trim();
+      const res = document.getElementById('resultado');
+      res.style.display = 'block';
+      res.className = '';
+      res.textContent = '⏳ Probando...';
+
+      if (!url || !key) {
+        res.className = 'err';
+        res.textContent = '⚠ Ingresa la URL y la Key';
+        return;
+      }
+
+      try {
+        const endpoint = url + '/rest/v1/productos?select=id&limit=1';
+        res.textContent = '📡 Conectando a:\n' + endpoint + '\n\nKey (primeros 20 chars): ' + key.substring(0, 20) + '...';
+
+        const resp = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'apikey': key,
+            'Authorization': 'Bearer ' + key
+          }
+        });
+
+        const texto = await resp.text();
+        if (resp.ok) {
+          res.className = 'ok';
+          res.textContent = '✅ CONEXIÓN EXITOSA\n\nStatus: ' + resp.status + '\nRespuesta: ' + texto;
+        } else {
+          res.className = 'err';
+          res.textContent = '❌ Error HTTP ' + resp.status + '\n\nRespuesta del servidor:\n' + texto;
+        }
+      } catch(e) {
+        res.className = 'err';
+        res.textContent = '❌ Error de red:\n' + e.name + ': ' + e.message + '\n\nPosibles causas:\n- Sin internet\n- URL incorrecta\n- CORS bloqueado';
+      }
+    }
+  </script>
+</body>
+</html>
